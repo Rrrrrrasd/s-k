@@ -1,31 +1,16 @@
 package com.contract.backend.common.exception;
 
-import com.contract.backend.common.dto.ErrorResponseDTO;
-import org.springframework.http.HttpStatus;
+import com.contract.backend.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
-
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RegistrationNotInProgressException.class)
-    public ResponseEntity<ErrorResponseDTO> handleRegistrationNotInProgress(RegistrationNotInProgressException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseDTO("RegistrationNotInProgress", ex.getMessage()));
-    }
-
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponseDTO> handleIllegalState(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseDTO("IllegalState", ex.getMessage()));
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> handleGeneralRuntime(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDTO("InternalServerError", ex.getMessage()));
+    @ExceptionHandler(CustomException.class)
+    public ResponseEntity<ApiResponse<?>> handleCustomException(CustomException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(ApiResponse.fail(e.getMessage()));
     }
 }

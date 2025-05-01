@@ -7,6 +7,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
   servlet:
     multipart:
       max-file-size: 10MB
@@ -19,6 +22,7 @@ spring:
       host: localhost
       port: 6379
 
-
 server:
   port: 8080
+
+spring.config.import: optional:application-secret.yml

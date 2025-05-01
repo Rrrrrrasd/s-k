@@ -1,24 +1,25 @@
 package com.contract.backend.common.config;
 
+import com.contract.backend.common.uitl.jwt.JwtAuthenticationFilter;
+import com.contract.backend.common.uitl.jwt.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwtTokenProvider) throws Exception {
+        http.csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/webauthn/**").permitAll()  // WebAuthn 경로 허용
+                .requestMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .formLogin().disable();  // 필요시 폼 로그인도 비활성화
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
