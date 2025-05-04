@@ -30,6 +30,12 @@ public class CredentialEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column
+    private LocalDateTime lastUsedAt;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
     protected CredentialEntity() {}
 
     public CredentialEntity(String credentialId, String userHandle, String publicKeyCose, long signatureCount, String deviceName) {
@@ -38,6 +44,8 @@ public class CredentialEntity {
         this.publicKeyCose = publicKeyCose;
         this.signatureCount = signatureCount;
         this.deviceName = deviceName;
+        this.active = true;
+        this.lastUsedAt = null;
     }
 
     @PrePersist
@@ -52,8 +60,12 @@ public class CredentialEntity {
     public String getPublicKeyCose() { return publicKeyCose; }
     public long getSignatureCount() { return signatureCount; }
     public String getDeviceName() { return deviceName; }
+    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
+    public boolean isActive() { return active; }
 
     //Setter
     public void setSignatureCount(long signatureCount) {this.signatureCount = signatureCount;}
     public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
+    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+    public void setActive(boolean active) { this.active = active; }
 }

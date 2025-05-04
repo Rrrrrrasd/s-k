@@ -10,7 +10,8 @@ public enum CustomExceptionEnum {
     WEBAUTHN_AUTHENTICATION_FAILED("WebAuthn 인증에 실패했습니다.", HttpStatus.BAD_REQUEST),
     CREDENTIAL_ALREADY_EXISTS("이미 등록된 WebAuthn 자격 정보입니다.", HttpStatus.CONFLICT),
     CREDENTIAL_NOT_FOUND("등록된 인증 정보를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    UNAUTHORIZED("요청 권한이 없습니다.", HttpStatus.FORBIDDEN);
+    UNAUTHORIZED("요청 권한이 없습니다.", HttpStatus.FORBIDDEN),
+    USER_NOT_FOUND("사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private final String message;
     private final HttpStatus status;

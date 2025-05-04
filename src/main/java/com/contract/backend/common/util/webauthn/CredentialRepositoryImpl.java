@@ -24,6 +24,7 @@ public class CredentialRepositoryImpl implements CredentialRepository {
         this.credentialRepository = credentialRepository;
     }
 
+    // username = userHandle = UUID
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
         List<CredentialEntity> credentials = credentialRepository.findAllByUserHandle(username);

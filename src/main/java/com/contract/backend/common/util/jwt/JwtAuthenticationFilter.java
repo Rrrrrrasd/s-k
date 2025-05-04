@@ -1,4 +1,4 @@
-package com.contract.backend.common.uitl.jwt;
+package com.contract.backend.common.util.jwt;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;

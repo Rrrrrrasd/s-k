@@ -2,11 +2,12 @@ package com.contract.backend.service;
 
 import com.contract.backend.common.Entity.CredentialEntity;
 import com.contract.backend.common.Entity.UserEntity;
+import com.contract.backend.common.dto.AuthResponseDTO;
 import com.contract.backend.common.exception.CustomException;
 import com.contract.backend.common.exception.CustomExceptionEnum;
 import com.contract.backend.common.repository.JpaCredentialRepository;
 import com.contract.backend.common.repository.UserRepository;
-import com.contract.backend.common.uitl.jwt.JwtTokenProvider;
+import com.contract.backend.common.util.jwt.JwtTokenProvider;
 import com.yubico.webauthn.*;
 import com.yubico.webauthn.data.*;
 import com.yubico.webauthn.exception.AssertionFailedException;
@@ -14,10 +15,10 @@ import com.yubico.webauthn.exception.RegistrationFailedException;
 import org.springframework.stereotype.Service;
 import java.time.Clock;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class WebAuthnService {
@@ -40,9 +41,9 @@ public class WebAuthnService {
                         .name("Contract Platform")
                         .build())
                 .credentialRepository(credentialRepository)
-                .origins(Collections.singleton("http://localhost:3000"))
+                .origins(Collections.singleton("http://localhost:5173"))
                 .attestationConveyancePreference(AttestationConveyancePreference.NONE)
-                .allowUntrustedAttestation(false)
+                .allowUntrustedAttestation(true) // local 환경에선 true  실제 실행시 false
                 .clock(Clock.systemUTC())
                 .build();
     }
@@ -51,7 +52,7 @@ public class WebAuthnService {
         return relyingParty.startRegistration(
                 StartRegistrationOptions.builder()
                         .user(UserIdentity.builder()
-                                .name(user.getEmail())
+                                .name(user.getUuid())
                                 .displayName(user.getUserName())
                                 .id(new ByteArray(user.getUuid().getBytes()))
                                 .build())
@@ -67,8 +68,8 @@ public class WebAuthnService {
             String userHandle = new String(options.getRequest().getUser().getId().getBytes());
 
             // 중복 Credential 검사
-            if (credentialRepository.findByCredentialId(credentialId).isPresent()) {
-                throw new CustomException(CustomExceptionEnum.CREDENTIAL_ALREADY_EXISTS); // 새로운 예외 항목 추가 가능
+            if (credentialRepository.findByCredentialIdAndUserHandle(credentialId, userHandle).isPresent()) {
+                throw new CustomException(CustomExceptionEnum.CREDENTIAL_ALREADY_EXISTS);
             }
 
             String publicKeyCose = result.getPublicKeyCose().getBase64Url();
@@ -90,7 +91,7 @@ public class WebAuthnService {
         );
     }
 
-    public String verifyLogin(FinishAssertionOptions options) {
+    public AuthResponseDTO verifyLogin(FinishAssertionOptions options) {
         try {
             AssertionResult result = relyingParty.finishAssertion(options);
 
@@ -113,15 +114,22 @@ public class WebAuthnService {
                     .findFirst()
                     .orElseThrow(() -> new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED));
 
+            if (!credential.isActive()) {
+                throw new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED);
+            }
+
             // signatureCount 비교 후 업데이트(리플레이 공격 방지)
             if (result.getSignatureCount() > credential.getSignatureCount()) {
                 credential.setSignatureCount(result.getSignatureCount());
+                credential.setLastUsedAt(LocalDateTime.now());
                 credentialRepository.save(credential);
             } else {
                 throw new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED);
             }
 
-            return jwtTokenProvider.createToken(user.getUuid());
+            String accessToken  = jwtTokenProvider.createToken(user.getUuid());
+            String refreshToken = jwtTokenProvider.createRefreshToken(user.getUuid());
+            return new AuthResponseDTO(accessToken, refreshToken);
         } catch (AssertionFailedException e) {
             throw new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED);
         }
@@ -138,7 +146,21 @@ public class WebAuthnService {
     }
 
     public List<CredentialEntity> getCredentialsForUser(String uuid) {
-        return credentialRepository.findAllByUserHandle(uuid);
+        return credentialRepository.findAllByUserHandleOrderByCreatedAtDesc(uuid);
     }
+
+    //Credential 비활성화 추가할지 안할진 모름
+    public void deactivateCredential(String credentialId, String requesterUuid) {
+        CredentialEntity credential = credentialRepository.findByCredentialId(credentialId)
+                .orElseThrow(() -> new CustomException(CustomExceptionEnum.CREDENTIAL_NOT_FOUND));
+
+        if (!credential.getUserHandle().equals(requesterUuid)) {
+            throw new CustomException(CustomExceptionEnum.UNAUTHORIZED);
+        }
+
+        credential.setActive(false);
+        credentialRepository.save(credential);
+    }
+
 }
 

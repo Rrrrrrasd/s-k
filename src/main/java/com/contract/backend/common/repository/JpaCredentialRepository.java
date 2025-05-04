@@ -11,4 +11,6 @@ public interface JpaCredentialRepository extends JpaRepository<CredentialEntity,
     List<CredentialEntity> findAllByCredentialId(String credentialId);
     List<CredentialEntity> findAllByUserHandle(String userHandle);
     Optional<CredentialEntity> findByUserHandle(String userHandle);
+    Optional<CredentialEntity> findByCredentialIdAndUserHandle(String credentialId, String userHandle);
+    List<CredentialEntity> findAllByUserHandleOrderByCreatedAtDesc(String userHandle);
 }
