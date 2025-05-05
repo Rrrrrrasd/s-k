@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // ✅ React 개발 서버
+        configuration.setAllowedOrigins(List.of("https://localhost:5173")); // ✅ React 개발 서버
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type","X-XSRF-TOKEN","Authorization"));
         configuration.setAllowCredentials(true);

@@ -41,7 +41,7 @@ public class WebAuthnService {
                         .name("Contract Platform")
                         .build())
                 .credentialRepository(credentialRepository)
-                .origins(Collections.singleton("http://localhost:5173"))
+                .origins(Collections.singleton("https://localhost:5173"))
                 .attestationConveyancePreference(AttestationConveyancePreference.NONE)
                 .allowUntrustedAttestation(true) // local 환경에선 true  실제 실행시 false
                 .clock(Clock.systemUTC())
