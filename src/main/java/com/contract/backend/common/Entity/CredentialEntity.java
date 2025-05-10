@@ -1,36 +1,41 @@
 package com.contract.backend.common.Entity;
 
 import jakarta.persistence.*;
+import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "credentials")
+@Table(name = "credentials",
+        indexes = @Index(name = "idx_credentials_user", columnList = "user_id"))
 public class CredentialEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 512)
+    //추가
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
+    @Column(name = "credential_id",nullable = false, unique = true, length = 512)
     private String credentialId;
 
-    @Column(nullable = false, length = 512)
-    private String userHandle; // UUID 기반
-
-    @Column(nullable = false, length = 2048)
+    @Lob
+    @Column(name = "public_key_cose",nullable = false, columnDefinition = "TEXT")
     private String publicKeyCose;
 
-    @Column(nullable = false)
+    @Column(name = "signature_count" ,nullable = false)
     private long signatureCount;
 
-    @Column(nullable = false)
+    @Column(name = "device_name",nullable = false)
     private String deviceName;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at",nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(name = "last_used_at")
     private LocalDateTime lastUsedAt;
 
     @Column(nullable = false)
@@ -38,9 +43,13 @@ public class CredentialEntity {
 
     protected CredentialEntity() {}
 
-    public CredentialEntity(String credentialId, String userHandle, String publicKeyCose, long signatureCount, String deviceName) {
+    public CredentialEntity(UserEntity user,
+                            String credentialId,
+                            String publicKeyCose,
+                            long signatureCount,
+                            String deviceName) {
+        this.user = user;
         this.credentialId = credentialId;
-        this.userHandle = userHandle;
         this.publicKeyCose = publicKeyCose;
         this.signatureCount = signatureCount;
         this.deviceName = deviceName;
@@ -55,8 +64,8 @@ public class CredentialEntity {
 
     //Getter
     public Long getId() { return id; }
+    public UserEntity getUser() { return user; }
     public String getCredentialId() { return credentialId; }
-    public String getUserHandle() { return userHandle; }
     public String getPublicKeyCose() { return publicKeyCose; }
     public long getSignatureCount() { return signatureCount; }
     public String getDeviceName() { return deviceName; }
@@ -64,6 +73,7 @@ public class CredentialEntity {
     public boolean isActive() { return active; }
 
     //Setter
+    public void setUser(UserEntity user) { this.user = user; }
     public void setSignatureCount(long signatureCount) {this.signatureCount = signatureCount;}
     public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
     public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }

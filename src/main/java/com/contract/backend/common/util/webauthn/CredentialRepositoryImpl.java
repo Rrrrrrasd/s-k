@@ -27,7 +27,7 @@ public class CredentialRepositoryImpl implements CredentialRepository {
     // username = userHandle = UUID
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        List<CredentialEntity> credentials = credentialRepository.findAllByUserHandle(username);
+        List<CredentialEntity> credentials = credentialRepository.findAllByUser_Uuid(username);
         return credentials.stream()
                 .map(cred -> PublicKeyCredentialDescriptor.builder()
                         .id(new ByteArray(Base64.getUrlDecoder().decode(cred.getCredentialId())))
@@ -38,22 +38,23 @@ public class CredentialRepositoryImpl implements CredentialRepository {
 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        return credentialRepository.findByUserHandle(username)
-                .map(cred -> new ByteArray(cred.getUserHandle().getBytes()));
+        return Optional.of(new ByteArray(username.getBytes()));
     }
 
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        return credentialRepository.findByUserHandle(new String(userHandle.getBytes()))
-                .map(CredentialEntity::getUserHandle);
+        return Optional.of(new String(userHandle.getBytes()));
     }
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        return credentialRepository.findByCredentialId(credentialId.getBase64Url())
+        String id  = credentialId.getBase64Url();
+        String uuid = new String(userHandle.getBytes());
+        return credentialRepository
+                .findByCredentialIdAndUser_Uuid(id, uuid)
                 .map(cred -> RegisteredCredential.builder()
                         .credentialId(credentialId)
-                        .userHandle(new ByteArray(cred.getUserHandle().getBytes()))
+                        .userHandle(new ByteArray(uuid.getBytes()))
                         .publicKeyCose(new ByteArray(Base64.getUrlDecoder().decode(cred.getPublicKeyCose())))
                         .signatureCount(cred.getSignatureCount())
                         .build());
@@ -61,11 +62,13 @@ public class CredentialRepositoryImpl implements CredentialRepository {
 
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
-        return credentialRepository.findAllByCredentialId(credentialId.getBase64Url())
-                .stream()
+        String id = credentialId.getBase64Url();
+        List<CredentialEntity> list = credentialRepository.findAllByCredentialId(id);
+
+        return list.stream()
                 .map(cred -> RegisteredCredential.builder()
                         .credentialId(credentialId)
-                        .userHandle(new ByteArray(cred.getUserHandle().getBytes()))
+                        .userHandle(new ByteArray(cred.getUser().getUuid().getBytes()))
                         .publicKeyCose(new ByteArray(Base64.getUrlDecoder().decode(cred.getPublicKeyCose())))
                         .signatureCount(cred.getSignatureCount())
                         .build())

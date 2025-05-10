@@ -65,17 +65,21 @@ public class WebAuthnService {
             RegistrationResult result = relyingParty.finishRegistration(options);
 
             String credentialId = result.getKeyId().getId().getBase64Url();
-            String userHandle = new String(options.getRequest().getUser().getId().getBytes());
+            String userUuid  = new String(options.getRequest().getUser().getId().getBytes());
 
-            // 중복 Credential 검사
-            if (credentialRepository.findByCredentialIdAndUserHandle(credentialId, userHandle).isPresent()) {
+            // UserEntity 조회
+            UserEntity user = userRepository.findByUuid(userUuid)
+                    .orElseThrow(() -> new CustomException(CustomExceptionEnum.EMAIL_NOT_FOUND));
+
+            // 중복 검사 (credentialId + user_id)
+            if (credentialRepository.findByCredentialIdAndUser_Uuid(credentialId, userUuid).isPresent()) {
                 throw new CustomException(CustomExceptionEnum.CREDENTIAL_ALREADY_EXISTS);
             }
 
             String publicKeyCose = result.getPublicKeyCose().getBase64Url();
             long signatureCount = result.getSignatureCount();
 
-            CredentialEntity credential = new CredentialEntity(credentialId, userHandle, publicKeyCose, signatureCount, deviceName);
+            CredentialEntity credential = new CredentialEntity(user, credentialId, publicKeyCose, signatureCount, deviceName);
             credentialRepository.save(credential);
         } catch (RegistrationFailedException e) {
             throw new CustomException(CustomExceptionEnum.WEBAUTHN_REGISTRATION_FAILED);
@@ -100,17 +104,17 @@ public class WebAuthnService {
             }
 
             // 인증된 사용자 UUID를 기반으로 사용자 조회 후 토큰 발급
-            String userHandle = new String(result.getUserHandle().getBytes());
-            UserEntity user = userRepository.findByUuid(userHandle)
+            String userUuid = new String(result.getUserHandle().getBytes());
+            UserEntity user = userRepository.findByUuid(userUuid)
                     .orElseThrow(() -> new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED));
 
 
-            //다수 Credential 중에서 정확히 일치하는 credentialId를 찾는 방식
-            String credentialId = result.getCredentialId().getBase64Url(); // 제출된 credential ID
-            List<CredentialEntity> credentials = credentialRepository.findAllByUserHandle(userHandle); // 유저의 모든 Credential 조회
+            // 해당 유저의 모든 Credential 가져오기
+            List<CredentialEntity> creds = credentialRepository.findAllByUser_Uuid(userUuid);
+            String credId = result.getCredentialId().getBase64Url(); // 유저의 모든 Credential 조회
 
-            CredentialEntity credential = credentials.stream()
-                    .filter(c -> c.getCredentialId().equals(credentialId)) // 정확히 제출된 credentialId와 일치하는 것만 선택
+            CredentialEntity credential = creds.stream()
+                    .filter(c -> c.getCredentialId().equals(credId))
                     .findFirst()
                     .orElseThrow(() -> new CustomException(CustomExceptionEnum.WEBAUTHN_AUTHENTICATION_FAILED));
 
@@ -139,14 +143,14 @@ public class WebAuthnService {
         CredentialEntity credential = credentialRepository.findByCredentialId(credentialId)
                 .orElseThrow(() -> new CustomException(CustomExceptionEnum.CREDENTIAL_NOT_FOUND));
 
-        if (!credential.getUserHandle().equals(requesterUuid)) {
+        if (!credential.getUser().getUuid().equals(requesterUuid)) {
             throw new CustomException(CustomExceptionEnum.UNAUTHORIZED); // ❗예외 추가 필요
         }
         credentialRepository.delete(credential);
     }
 
     public List<CredentialEntity> getCredentialsForUser(String uuid) {
-        return credentialRepository.findAllByUserHandleOrderByCreatedAtDesc(uuid);
+        return credentialRepository.findAllByUser_UuidOrderByCreatedAtDesc(uuid);
     }
 
     //Credential 비활성화 추가할지 안할진 모름
@@ -154,7 +158,7 @@ public class WebAuthnService {
         CredentialEntity credential = credentialRepository.findByCredentialId(credentialId)
                 .orElseThrow(() -> new CustomException(CustomExceptionEnum.CREDENTIAL_NOT_FOUND));
 
-        if (!credential.getUserHandle().equals(requesterUuid)) {
+        if (!credential.getUser().getUuid().equals(requesterUuid)) {
             throw new CustomException(CustomExceptionEnum.UNAUTHORIZED);
         }
 

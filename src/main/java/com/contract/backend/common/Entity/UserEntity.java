@@ -12,7 +12,7 @@ public class UserEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "user_name", nullable = false, unique = true)
     private String userName;
 
     @Column(nullable = false, unique = true)
@@ -21,10 +21,10 @@ public class UserEntity {
     @Column(nullable = false)
     private String password;
 
-    @jakarta.persistence.Column(nullable = false, unique = true)
+    @jakarta.persistence.Column(nullable = false, unique = true ,columnDefinition = "char(36)", length = 36)
     private String uuid;
 
-    @jakarta.persistence.Column(nullable = false, updatable = false)
+    @jakarta.persistence.Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     protected UserEntity() {}
