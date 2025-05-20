@@ -1,0 +1,50 @@
+[
+  {
+    "id": "c72e8cad-1a54-4d4b-abde-eb7063e3194e",
+    "name": "clear-code.pdf",
+    "type": "application/pdf",
+    "size": 166,
+    "createdBy": "Development User",
+    "updatedAt": 1650916565268
+  },
+  {
+    "id": "69e8a114-4584-44dd-a3a5-3a5a81492b7b",
+    "name": "coding a google drive interface clone.mp4",
+    "type": "video/mp4",
+    "size": 122265.6,
+    "createdBy": "Development User",
+    "updatedAt": 1650918431961
+  },
+  {
+    "id": "afaab6a7-9c49-4c8e-a21b-fcd76c5cfea6",
+    "name": "Learning React: Functional Web Development with React and Redux",
+    "type": "application/msword",
+    "size": 1,
+    "createdBy": "Development User",
+    "updatedAt": 1650920172228
+  },
+  {
+    "id": "bcd76e8b-2499-4349-8d4f-785b074dd572",
+    "name": "my-photo",
+    "type": "image/png",
+    "size": 45,
+    "createdBy": "Development User",
+    "updatedAt": 1650916173774
+  },
+  {
+    "id": "c75f6abf-10c5-4f04-a8b3-49d98fa8d1b9",
+    "name": "React Native vs Flutter",
+    "type": "application/vnd.ms-powerpoint",
+    "size": 8192,
+    "createdBy": "Development User",
+    "updatedAt": 1650920675859
+  },
+  {
+    "id": "249b2194-6891-4d6a-988f-b65f81597ed2",
+    "name": "schedule",
+    "type": "application/vnd.ms-excel",
+    "size": 1,
+    "createdBy": "Development User",
+    "updatedAt": 1650920526075
+  }
+]
