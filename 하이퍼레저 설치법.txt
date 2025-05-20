@@ -1,0 +1,38 @@
+1. Docker Desktop 설치
+→ Windows / Mac / Linux 버전 맞춰 설치
+→ 다운로드 : https://www.docker.com/products/docker-desktop/
+
+[bash] (설치 후 확인)
+docker --version
+docker-compose --version
+
+2. Git 설치
+https://git-scm.com/downloads
+
+[bash] (설치 후 확인)
+git --version
+
+3. Go 설치 (Chaincode 개발용)
+
+[bash] (설치 후 확인)
+go version
+
+4. 하이퍼레저 패브릭 실행 및 구동
+
+4-1. 하이퍼레저 패브릭 이미지 가져오기
+
+[bash]
+curl -sSL https://bit.ly/2ysbOFE | bash -s
+
+4-2. fabric-sample/test-network로 이동
+
+[bash]
+cd fabric-samples/test-network
+
+4-3. 채널 생성 및 실행
+
+[bash]
+./network.sh up createChannel -c mychannel -ca
+ - up(실행), createChannel(채널 생성), -c(채널 이름) mychannel(채널 이름) -ca(인증서 발급)
+
+4-4. 체인코드 배포

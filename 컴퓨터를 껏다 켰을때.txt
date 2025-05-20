@@ -1,0 +1,42 @@
+네, 컴퓨터를 껐다가 켜셨다면 **이전에 터미널 세션에서 설정했던 환경 변수들이 초기화**되었을 가능성이 높습니다. 따라서 몇 가지 단계를 다시 진행해주셔야 합니다.
+
+**다시 해야 할 가능성이 높은 것들:**
+
+1.  **`peer` CLI (명령줄 도구) 사용 환경 설정:**
+    *   `peer` 바이너리 경로 설정:
+        
+
+
+
+```bash
+        export PATH=${PWD}/../bin:$PATH
+        ```
+
+
+
+    *   Fabric 설정 파일 경로 설정:
+        
+
+
+
+```bash
+        export FABRIC_CFG_PATH=$PWD/../config/
+        ```
+
+
+
+    *   **확인:**
+        
+
+
+
+```bash
+        peer version
+        ```
+
+
+
+        위 명령어를 실행해서 `peer: Version: v2.5.12` (사용자님의 버전)과 같이 버전 정보가 잘 나오는지 확인해주세요. "command not found" 오류가 나면 위 `export` 명령어들이 제대로 실행되지 않았거나, 현재 터미널의 작업 디렉토리(`.`)가 `fabric-samples/test-network`가 아닌 경우일 수 있습니다.
+
+docker.ps -a 시 Exited 상태일 시
+./network.sh up 필요
