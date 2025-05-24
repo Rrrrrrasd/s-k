@@ -1,6 +1,10 @@
 package com.contract.backend.common.Entity;
 
 import com.contract.backend.common.Entity.enumm.ContractStatus;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -10,6 +14,8 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_contract_created_by", columnList = "created_by"),
                 @Index(name = "idx_contract_status", columnList = "status")
         })
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ContractEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +34,7 @@ public class ContractEntity {
     // 현재 활성 버전 (nullable)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_version")
+    @JsonManagedReference
     private ContractVersionEntity currentVersion;
 
     @Enumerated(EnumType.STRING)

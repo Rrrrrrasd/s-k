@@ -36,6 +36,7 @@ dependencies {
     implementation 'com.yubico:webauthn-server-core:2.5.4'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate5-jakarta'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

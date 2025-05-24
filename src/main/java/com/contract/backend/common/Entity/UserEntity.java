@@ -1,5 +1,8 @@
 package com.contract.backend.common.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -7,6 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class UserEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
