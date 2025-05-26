@@ -4,6 +4,7 @@ import com.contract.backend.common.Entity.ContractEntity;
 import com.contract.backend.common.Entity.ContractPartyEntity;
 import com.contract.backend.common.Entity.UserEntity;
 import com.contract.backend.common.dto.AddParticipantRequestDTO;
+import com.contract.backend.common.dto.ContractIntegrityVerificationDTO;
 import com.contract.backend.common.dto.ContractUploadRequestDTO;
 import com.contract.backend.common.dto.ContractUpdateRequestDTO; // 추가
 import com.contract.backend.common.response.ApiResponse; // 추가 (ApiResponse 사용을 위해)
@@ -80,6 +81,25 @@ public class ContractController {
         } catch (Exception e) {
             // GlobalExceptionHandler에서 처리
             throw new RuntimeException("Failed to add participant: " + e.getMessage(), e);
+        }
+    }
+    @GetMapping("/{contractId}/versions/{versionNumber}/verify")
+    public ResponseEntity<ApiResponse<ContractIntegrityVerificationDTO>> verifyContractIntegrity(
+            @PathVariable Long contractId,
+            @PathVariable int versionNumber,
+            @AuthenticationPrincipal String userUuid // 요청자 UUID
+    ) {
+        try {
+            UserEntity requester = authService.findByUuid(userUuid);
+            ContractIntegrityVerificationDTO verificationResult = contractService.verifyContractIntegrity(contractId, versionNumber, requester);
+            return ResponseEntity.ok(ApiResponse.success(verificationResult));
+        } catch (Exception e) {
+            // GlobalExceptionHandler 에서 CustomException은 적절히 처리됨.
+            // RuntimeException으로 감싸서 보내면 500 에러와 함께 GlobalExceptionHandler에서 처리될 수 있음 (메시지 포함)
+            // 혹은 여기서 직접 ApiResponse.fail()을 사용하여 상태 코드와 메시지를 명시적으로 지정할 수 있음
+            // e.g., if (e instanceof CustomException) { throw (CustomException) e; }
+            //       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Verification failed: " + e.getMessage()));
+            throw new RuntimeException("Verification failed: " + e.getMessage(), e);
         }
     }
 }
