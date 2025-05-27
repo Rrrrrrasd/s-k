@@ -296,3 +296,5 @@ file.upload-dir=uploads/
 # 하이퍼레저 연동을 위한 Node.js 게이트웨이 주소
 blockchain.gateway.url=http://localhost:4000/store
 
+# 체인 코드 업그레이드?
+./network.sh deployCC -ccn filecontract -ccp ../chaincode/contract -ccl javascript -ccv 1.1 -ccs 1

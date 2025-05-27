@@ -37,14 +37,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileUploadController {
 
 	private static final String UPLOAD_DIR = "uploads/";
-	private static final String NODE_JS_GATEWAY_STORE_URL = "http://localhost:4000/store";
-	private static final String NODE_JS_GATEWAY_TEST_URL = "http://localhost:4000/nodetest_from_spring";
-	// private static final String WSL_NODE_IP = "172.17.226.23"; // 예:
-	// "172.24.100.50"
-	// private static final String NODE_JS_GATEWAY_STORE_URL = "http://" +
-	// WSL_NODE_IP + ":4000/store";
-	// private static final String NODE_JS_GATEWAY_TEST_URL = "http://" +
-	// WSL_NODE_IP + ":4000/nodetest_from_spring";
+	// private static final String NODE_JS_GATEWAY_STORE_URL =
+	// "http://localhost:4000/store";
+	// private static final String NODE_JS_GATEWAY_TEST_URL =
+	// "http://localhost:4000/nodetest_from_spring";
+	private static final String WSL_NODE_IP = "172.17.226.23"; // 예:"172.24.100.50"
+	private static final String NODE_JS_GATEWAY_STORE_URL = "http://" + WSL_NODE_IP + ":4000/store";
+	private static final String NODE_JS_GATEWAY_TEST_URL = "http://" + WSL_NODE_IP + ":4000/nodetest_from_spring";
 
 // React 와의 기본 연결 테스트용 엔드포인트
 	@PostMapping("/react-test")

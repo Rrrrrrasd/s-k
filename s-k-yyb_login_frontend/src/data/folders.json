@@ -1,0 +1,26 @@
+[
+  {
+    "id": "2f93e59d-6136-4732-ae72-b1465cc8e589",
+    "name": "Documents",
+    "createdBy": "Development User",
+    "updatedAt": 1651670676551
+  },
+  {
+    "id": "77f7b8e6-14e3-4b06-8f90-c51dc22927fb",
+    "name": "Photos",
+    "createdBy": "Development User",
+    "updatedAt": 1651670668942
+  },
+  {
+    "id": "670b28d7-cf62-45c3-a27a-5e363b441985",
+    "name": "Projects",
+    "createdBy": "Development User",
+    "updatedAt": 1651671426310
+  },
+  {
+    "id": "929f6b3e-404d-454b-8c1f-405f9a637443",
+    "name": "Videos",
+    "createdBy": "Development User",
+    "updatedAt": 1651670588315
+  }
+]
