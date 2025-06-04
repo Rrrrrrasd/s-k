@@ -11,7 +11,7 @@ function PathBar() {
     <PBContainer>
       <PBContent>
         <PathItem
-          text="My Drive"
+          text="Misery"
           inFocus={showDropdown}
           isDropdown
           onClick={() => setShowDropdown(oldState => !oldState)}

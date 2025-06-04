@@ -26,25 +26,25 @@ const LeftAsideButton = memo(function LeftAsideButton(props: IProps) {
   const Data = useMemo(() => {
     switch (props.type) {
       case 'drive':
-        return { text: 'My Drive', Icon: DriveIcon }
+        return { text: '내 계약서', Icon: DriveIcon }
 
       case 'computers':
-        return { text: 'Computers', Icon: ComputersIcon }
+        return { text: '컴퓨터', Icon: ComputersIcon }
 
       case 'shared':
-        return { text: 'Shared with me', Icon: GroupIcon }
+        return { text: '공유 계약서', Icon: GroupIcon }
 
       case 'recent':
-        return { text: 'Recent', Icon: ClockIcon }
+        return { text: '최근 계약서', Icon: ClockIcon }
 
       case 'starred':
-        return { text: 'Starred', Icon: StarIcon }
+        return { text: '관심 계약서', Icon: StarIcon }
 
       case 'trash':
-        return { text: 'Trash', Icon: TrashIcon }
+        return { text: '휴지통', Icon: TrashIcon }
 
       case 'storage':
-        return { text: 'Storage', Icon: CloudIcon }
+        return { text: '용량', Icon: CloudIcon }
     }
   }, [props.type])
 

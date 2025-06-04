@@ -53,7 +53,7 @@ function Tooltip() {
         <div>
           {value.includes('Google Account:') ? (
             <>
-              <p>Google Account:</p>
+              <p>Misery Account:</p>
               <p>
                 {value
                   .substring(value.indexOf(':') + 1, value.indexOf('('))

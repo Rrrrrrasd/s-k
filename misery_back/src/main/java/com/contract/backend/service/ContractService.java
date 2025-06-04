@@ -26,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Collections;
 
 @Service
 public class ContractService {
@@ -464,20 +463,34 @@ public class ContractService {
     }
 
     @Transactional(readOnly = true)
-    public ContractDetailDTO getContractDetails(Long contractId, String requesterUuid) {
+public ContractDetailDTO getContractDetails(Long contractId, String requesterUuid) {
+    try {
+        logger.info("계약서 상세 조회 시작 - contractId: {}, requesterUuid: {}", contractId, requesterUuid);
+        
         UserEntity requester = userRepository.findByUuid(requesterUuid)
-                .orElseThrow(() -> new CustomException(CustomExceptionEnum.USER_NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.error("사용자를 찾을 수 없음: {}", requesterUuid);
+                    return new CustomException(CustomExceptionEnum.USER_NOT_FOUND);
+                });
 
         ContractEntity contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.error("계약서를 찾을 수 없음: {}", contractId);
+                    return new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND);
+                });
+
+        logger.info("계약서 조회 성공 - 제목: {}, 상태: {}", contract.getTitle(), contract.getStatus());
 
         // 권한 검사: 요청자가 해당 계약의 생성자이거나 참여자인지 확인
         boolean isCreator = contract.getCreatedBy().getUuid().equals(requesterUuid);
         boolean isParticipant = contractPartyRepository.findByContractAndParty(contract, requester).isPresent();
 
         if (!isCreator && !isParticipant) {
-            throw new CustomException(CustomExceptionEnum.UNAUTHORIZED); // 이 계약을 볼 권한이 없음
+            logger.error("권한 없음 - contractId: {}, requesterUuid: {}", contractId, requesterUuid);
+            throw new CustomException(CustomExceptionEnum.UNAUTHORIZED);
         }
+
+        logger.info("권한 확인 완료 - isCreator: {}, isParticipant: {}", isCreator, isParticipant);
 
         ContractDetailDTO detailDTO = new ContractDetailDTO();
         detailDTO.setId(contract.getId());
@@ -487,55 +500,115 @@ public class ContractService {
         detailDTO.setCreatedAt(contract.getCreatedAt());
         detailDTO.setUpdatedAt(contract.getUpdatedAt());
 
+        // 생성자 정보 안전하게 설정
         if (contract.getCreatedBy() != null) {
-            detailDTO.setCreatedBy(new UserResponseDTO(
-                    contract.getCreatedBy().getId(),
-                    contract.getCreatedBy().getUserName(),
-                    contract.getCreatedBy().getEmail()
-            ));
+            try {
+                detailDTO.setCreatedBy(new UserResponseDTO(
+                        contract.getCreatedBy().getId(),
+                        contract.getCreatedBy().getUserName(),
+                        contract.getCreatedBy().getEmail()
+                ));
+                logger.debug("생성자 정보 설정 완료");
+            } catch (Exception e) {
+                logger.error("생성자 정보 설정 중 오류: {}", e.getMessage(), e);
+                throw new RuntimeException("생성자 정보 처리 중 오류 발생", e);
+            }
         }
+
+        // 수정자 정보 안전하게 설정
         if (contract.getUpdatedBy() != null) {
-            detailDTO.setUpdatedBy(new UserResponseDTO(
-                    contract.getUpdatedBy().getId(),
-                    contract.getUpdatedBy().getUserName(),
-                    contract.getUpdatedBy().getEmail()
-            ));
+            try {
+                detailDTO.setUpdatedBy(new UserResponseDTO(
+                        contract.getUpdatedBy().getId(),
+                        contract.getUpdatedBy().getUserName(),
+                        contract.getUpdatedBy().getEmail()
+                ));
+                logger.debug("수정자 정보 설정 완료");
+            } catch (Exception e) {
+                logger.error("수정자 정보 설정 중 오류: {}", e.getMessage(), e);
+                // 수정자 정보는 필수가 아니므로 로그만 남기고 계속 진행
+            }
         }
 
         // 참여자 정보 매핑
-        List<ContractPartyEntity> parties = contractPartyRepository.findByContract(contract);
-        List<ParticipantDetailDTO> participantDTOs = parties.stream()
-                .map(party -> new ParticipantDetailDTO(
-                        party.getParty().getUuid(),
-                        party.getParty().getUserName(),
-                        party.getParty().getEmail(),
-                        party.getRole()
-                ))
-                .collect(Collectors.toList());
-        detailDTO.setParticipants(participantDTOs);
-
-        // 모든 버전 이력 정보 매핑 (선택 사항: 현재 버전만 보여줄 수도 있음)
-        List<ContractVersionEntity> allVersions = contractVersionRepository.findByContract(contract);
-        // versionNumber를 기준으로 정렬 (예: 오름차순)
-        allVersions.sort(Comparator.comparingInt(ContractVersionEntity::getVersionNumber));
-
-        List<ContractVersionDetailDTO> versionHistoryDTOs = allVersions.stream()
-                .map(this::mapContractVersionToDetailDTO) // 별도 메소드로 분리
-                .collect(Collectors.toList());
-        detailDTO.setVersionHistory(versionHistoryDTOs);
-
-        // 현재 버전 정보 매핑
-        if (contract.getCurrentVersion() != null) {
-            detailDTO.setCurrentVersion(mapContractVersionToDetailDTO(contract.getCurrentVersion()));
-        } else if (!versionHistoryDTOs.isEmpty()) {
-            // currentVersion이 null이지만 버전 히스토리가 있다면, 마지막 버전을 현재 버전으로 간주 (또는 정책에 따라 다르게 처리)
-            // 여기서는 versionHistory가 versionNumber로 정렬되어 있다고 가정하고 마지막 것을 가져옴
-            detailDTO.setCurrentVersion(versionHistoryDTOs.get(versionHistoryDTOs.size() - 1));
+        try {
+            List<ContractPartyEntity> parties = contractPartyRepository.findByContract(contract);
+            logger.debug("참여자 수: {}", parties.size());
+            
+            List<ParticipantDetailDTO> participantDTOs = parties.stream()
+                    .map(party -> {
+                        try {
+                            return new ParticipantDetailDTO(
+                                    party.getParty().getUuid(),
+                                    party.getParty().getUserName(),
+                                    party.getParty().getEmail(),
+                                    party.getRole()
+                            );
+                        } catch (Exception e) {
+                            logger.error("참여자 정보 매핑 중 오류 - partyId: {}, error: {}", 
+                                party.getParty().getId(), e.getMessage());
+                            throw new RuntimeException("참여자 정보 처리 중 오류 발생", e);
+                        }
+                    })
+                    .collect(Collectors.toList());
+            detailDTO.setParticipants(participantDTOs);
+            logger.debug("참여자 정보 매핑 완료");
+        } catch (Exception e) {
+            logger.error("참여자 정보 처리 중 오류: {}", e.getMessage(), e);
+            throw new RuntimeException("참여자 정보 처리 중 오류 발생", e);
         }
 
+        // 모든 버전 이력 정보 매핑
+        try {
+            List<ContractVersionEntity> allVersions = contractVersionRepository.findByContract(contract);
+            logger.debug("버전 수: {}", allVersions.size());
+            
+            // versionNumber를 기준으로 정렬
+            allVersions.sort(Comparator.comparingInt(ContractVersionEntity::getVersionNumber));
 
+            List<ContractVersionDetailDTO> versionHistoryDTOs = allVersions.stream()
+                    .map(version -> {
+                        try {
+                            return mapContractVersionToDetailDTO(version);
+                        } catch (Exception e) {
+                            logger.error("버전 정보 매핑 중 오류 - versionId: {}, error: {}", 
+                                version.getId(), e.getMessage());
+                            throw new RuntimeException("버전 정보 처리 중 오류 발생", e);
+                        }
+                    })
+                    .collect(Collectors.toList());
+            detailDTO.setVersionHistory(versionHistoryDTOs);
+            logger.debug("버전 이력 매핑 완료");
+        } catch (Exception e) {
+            logger.error("버전 이력 처리 중 오류: {}", e.getMessage(), e);
+            throw new RuntimeException("버전 이력 처리 중 오류 발생", e);
+        }
+
+        // 현재 버전 정보 매핑
+        try {
+            if (contract.getCurrentVersion() != null) {
+                detailDTO.setCurrentVersion(mapContractVersionToDetailDTO(contract.getCurrentVersion()));
+                logger.debug("현재 버전 정보 설정 완료");
+            } else if (!detailDTO.getVersionHistory().isEmpty()) {
+                detailDTO.setCurrentVersion(detailDTO.getVersionHistory().get(detailDTO.getVersionHistory().size() - 1));
+                logger.debug("버전 히스토리에서 현재 버전 설정");
+            }
+        } catch (Exception e) {
+            logger.error("현재 버전 정보 처리 중 오류: {}", e.getMessage(), e);
+            throw new RuntimeException("현재 버전 정보 처리 중 오류 발생", e);
+        }
+
+        logger.info("계약서 상세 조회 완료 - contractId: {}", contractId);
         return detailDTO;
+        
+    } catch (CustomException e) {
+        logger.error("CustomException 발생 - contractId: {}, error: {}", contractId, e.getMessage());
+        throw e; // CustomException은 그대로 전파
+    } catch (Exception e) {
+        logger.error("계약서 상세 조회 중 예상치 못한 오류 - contractId: {}, error: {}", contractId, e.getMessage(), e);
+        throw new RuntimeException("계약서 상세 조회 중 오류 발생: " + e.getMessage(), e);
     }
+}
 
     // ContractVersionEntity를 ContractVersionDetailDTO로 변환하는 헬퍼 메소드
     private ContractVersionDetailDTO mapContractVersionToDetailDTO(ContractVersionEntity versionEntity) {

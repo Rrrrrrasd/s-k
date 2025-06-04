@@ -170,10 +170,10 @@ function App() {
           <AContentTable>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Owner</th>
-                <th>Last modified</th>
-                <th>File size</th>
+                <th>계약서 이름</th>
+                <th>계약자</th>
+                <th>최종 수정일자</th>
+                <th>파일크기</th>
               </tr>
             </thead>
 
