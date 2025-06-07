@@ -3,6 +3,11 @@ package com.contract.backend.common.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"contractVersionId", "contractFileHash", "contractTitle", "creatorUuid", "signatures", "fullySignedAt"})
+
+
 // 블록체인에 기록될 메타데이터 구조
 public class BlockchainMetadataDTO {
     private Long contractVersionId;

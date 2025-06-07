@@ -140,4 +140,21 @@ public class ContractController {
             throw new RuntimeException("Failed to retrieve contract details: " + e.getMessage(), e);
         }
     }
+
+    // --- 👇 계약서 삭제를 위한 핸들러 추가 ---
+    @DeleteMapping("/{contractId}")
+    public ResponseEntity<ApiResponse<Void>> deleteContract(
+            @PathVariable Long contractId,
+            @AuthenticationPrincipal String uuid // 요청자 UUID (권한 검사용)
+    ) {
+        try {
+            UserEntity requester = authService.findByUuid(uuid);
+            contractService.deleteContract(contractId, requester); // 서비스 계층에 실제 삭제 로직 호출
+            return ResponseEntity.ok(ApiResponse.success(null)); // 성공 시 null 데이터와 함께 응답
+        } catch (Exception e) {
+            // GlobalExceptionHandler에서 CustomException은 적절히 처리됨.
+            // RuntimeException으로 감싸서 보내면 500 에러와 함께 GlobalExceptionHandler에서 처리될 수 있음
+            throw new RuntimeException("Failed to delete contract: " + e.getMessage(), e);
+        }
+    }
 }

@@ -116,8 +116,9 @@ public class ContractService {
             UserEntity updater,
             MultipartFile file
     ) throws Exception {
-        ContractEntity contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
+        // 삭제되지 않은 계약서만 조회
+        ContractEntity contract = contractRepository.findByIdAndNotDeleted(contractId)
+            .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
 
         if (contract.getStatus() != ContractStatus.OPEN) {
             throw new CustomException(CustomExceptionEnum.CONTRACT_NOT_MODIFIABLE);
@@ -179,8 +180,8 @@ public class ContractService {
             AddParticipantRequestDTO request,
             UserEntity actionRequester
     ) {
-        ContractEntity contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
+        ContractEntity contract = contractRepository.findByIdAndNotDeleted(contractId)
+            .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
 
         if (contract.getStatus() != ContractStatus.OPEN) {
             throw new CustomException(CustomExceptionEnum.CONTRACT_NOT_MODIFIABLE);
@@ -216,8 +217,8 @@ public class ContractService {
 
     @Transactional(readOnly = true)
     public ContractIntegrityVerificationDTO verifyContractIntegrity(Long contractId, int versionNumber, UserEntity requester) {
-        ContractEntity contract = contractRepository.findById(contractId)
-                .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
+        ContractEntity contract = contractRepository.findByIdAndNotDeleted(contractId)
+            .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
 
         boolean isCreator = contract.getCreatedBy().getId().equals(requester.getId());
         boolean isParty = contractPartyRepository.findByContractAndParty(contract, requester).isPresent();
@@ -473,9 +474,9 @@ public ContractDetailDTO getContractDetails(Long contractId, String requesterUui
                     return new CustomException(CustomExceptionEnum.USER_NOT_FOUND);
                 });
 
-        ContractEntity contract = contractRepository.findById(contractId)
+        ContractEntity contract = contractRepository.findByIdAndNotDeleted(contractId)
                 .orElseThrow(() -> {
-                    logger.error("계약서를 찾을 수 없음: {}", contractId);
+                    logger.error("계약서를 찾을 수 없음 또는 삭제된 계약서: {}", contractId);
                     return new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND);
                 });
 
@@ -603,7 +604,7 @@ public ContractDetailDTO getContractDetails(Long contractId, String requesterUui
         
     } catch (CustomException e) {
         logger.error("CustomException 발생 - contractId: {}, error: {}", contractId, e.getMessage());
-        throw e; // CustomException은 그대로 전파
+        throw e;
     } catch (Exception e) {
         logger.error("계약서 상세 조회 중 예상치 못한 오류 - contractId: {}, error: {}", contractId, e.getMessage(), e);
         throw new RuntimeException("계약서 상세 조회 중 오류 발생: " + e.getMessage(), e);
@@ -636,6 +637,40 @@ public ContractDetailDTO getContractDetails(Long contractId, String requesterUui
 
         return versionDTO;
     }
+
+    @Transactional
+public void deleteContract(Long contractId, UserEntity requester) {
+    logger.info("계약서 삭제 요청 - contractId: {}, requesterUuid: {}", contractId, requester.getUuid());
+    
+    ContractEntity contract = contractRepository.findById(contractId)
+            .orElseThrow(() -> new CustomException(CustomExceptionEnum.CONTRACT_NOT_FOUND));
+
+    // 권한 검사: 생성자만 삭제 가능
+    if (!contract.getCreatedBy().getId().equals(requester.getId())) {
+        logger.warn("계약서 삭제 권한 없음 - contractId: {}, requesterUuid: {}, creatorUuid: {}", 
+            contractId, requester.getUuid(), contract.getCreatedBy().getUuid());
+        throw new CustomException(CustomExceptionEnum.UNAUTHORIZED);
+    }
+
+    // 완료된 계약서는 삭제 불가 (비즈니스 로직에 따라 조정 가능)
+    if (contract.getStatus() == ContractStatus.CLOSED) {
+        logger.warn("완료된 계약서는 삭제할 수 없음 - contractId: {}, status: {}", contractId, contract.getStatus());
+        throw new CustomException(CustomExceptionEnum.CONTRACT_NOT_MODIFIABLE);
+    }
+
+    try {
+        // 논리적 삭제 (deletedAt 필드 업데이트)
+        contract.setDeletedAt(LocalDateTime.now());
+        contract.setUpdatedAt(LocalDateTime.now());
+        contract.setUpdatedBy(requester);
+        contractRepository.save(contract);
+        
+        logger.info("계약서 삭제 완료 - contractId: {}, requesterUuid: {}", contractId, requester.getUuid());
+    } catch (Exception e) {
+        logger.error("계약서 삭제 중 오류 발생 - contractId: {}, error: {}", contractId, e.getMessage(), e);
+        throw new RuntimeException("계약서 삭제 중 오류가 발생했습니다: " + e.getMessage(), e);
+    }
+}
 
 
 }
