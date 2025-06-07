@@ -84,6 +84,7 @@ public class ContractController {
             throw new RuntimeException("Failed to add participant: " + e.getMessage(), e);
         }
     }
+
     @GetMapping("/{contractId}/versions/{versionNumber}/verify")
     public ResponseEntity<ApiResponse<ContractIntegrityVerificationDTO>> verifyContractIntegrity(
             @PathVariable Long contractId,
