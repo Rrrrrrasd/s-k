@@ -1,3 +1,4 @@
+// src/components/HeaderSearch/index.tsx
 import { useRef, useState, useCallback } from 'react'
 import { ReactComponent as AskIcon } from '../../assets/icons/ask.svg'
 import { ReactComponent as CloseIcon } from '../../assets/icons/close.svg'
@@ -7,7 +8,11 @@ import { ReactComponent as SettingsIcon } from '../../assets/icons/settings.svg'
 import HeaderSearchResults from '../HeaderSearchResults'
 import { DropButton, HSContainer, HSForm, HSFormContainer } from './styles'
 
-function HeaderSearch() {
+interface HeaderSearchProps {
+  onContractClick?: (contractId: number) => void
+}
+
+function HeaderSearch({ onContractClick }: HeaderSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [value, setValue] = useState('')
@@ -40,6 +45,15 @@ function HeaderSearch() {
       inputRef.current?.blur()
     }
   }, [])
+
+  // 계약서 클릭 시 검색 결과 닫기
+  const handleContractClick = useCallback((contractId: number) => {
+    setOpenResults(false)
+    setValue('') // 검색어도 초기화
+    if (onContractClick) {
+      onContractClick(contractId)
+    }
+  }, [onContractClick])
 
   return (
     <HSContainer>
@@ -75,7 +89,10 @@ function HeaderSearch() {
 
           {openResults && (
             <div data-search-results>
-              <HeaderSearchResults value={value} />
+              <HeaderSearchResults 
+                value={value} 
+                onContractClick={handleContractClick}
+              />
             </div>
           )}
         </HSForm>

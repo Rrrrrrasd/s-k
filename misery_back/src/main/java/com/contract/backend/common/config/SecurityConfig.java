@@ -29,6 +29,7 @@ public class SecurityConfig {
             .requestMatchers("/api/contracts/files/download/**").authenticated() // 파일 다운로드 경로 추가
             .requestMatchers("/api/contracts/files/**").authenticated() // 기타 파일 관련 API
             .requestMatchers("/api/contracts/**").authenticated() // 모든 계약서 API
+            .requestMatchers("/api/folders/**").authenticated() //폴더
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),

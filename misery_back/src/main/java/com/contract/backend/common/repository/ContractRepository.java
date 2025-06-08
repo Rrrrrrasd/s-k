@@ -33,8 +33,20 @@ public interface ContractRepository extends JpaRepository<ContractEntity, Long> 
     // ID로 조회할 때도 삭제되지 않은 것만
     @Query("SELECT c FROM ContractEntity c WHERE c.id = :id AND c.deletedAt IS NULL")
     Optional<ContractEntity> findByIdAndNotDeleted(@Param("id") Long id);
+
+    //검색 메소드
+    @Query("SELECT c FROM ContractEntity c " +
+           "LEFT JOIN ContractPartyEntity cp ON c.id = cp.contract.id " +
+           "WHERE (c.createdBy = :user OR cp.party = :user) " +
+           "AND LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "AND c.deletedAt IS NULL " +
+           "ORDER BY c.createdAt DESC")
+    List<ContractEntity> searchUserContractsByTitle(
+           @Param("user") UserEntity user,
+           @Param("query") String query
+    );
     
-    // 기존 메소드들 (하위 호환성을 위해 유지, 하지만 사용 시 주의 필요)
+    
     List<ContractEntity> findByCreatedBy(UserEntity user);
     List<ContractEntity> findByStatus(ContractStatus status);
 }

@@ -1,3 +1,4 @@
+// src/components/HeaderSearchResults/index.tsx
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import documentsImg from '../../assets/icons/documents.png'
@@ -14,6 +15,7 @@ import { getMyContracts } from '../../utils/api'
 
 interface IProps {
   value: string
+  onContractClick?: (contractId: number) => void // 계약서 클릭 핸들러 추가
 }
 
 interface IResults {
@@ -32,7 +34,7 @@ interface ContractListItem {
   currentVersionNumber?: number;
 }
 
-function HeaderSearchResults({ value }: IProps) {
+function HeaderSearchResults({ value, onContractClick }: IProps) {
   const [results, setResults] = useState<IResults[] | null>(null)
   const [contracts, setContracts] = useState<ContractListItem[]>([])
   const [contractsLoading, setContractsLoading] = useState(false)
@@ -96,6 +98,13 @@ function HeaderSearchResults({ value }: IProps) {
     }
   }
 
+  // 계약서 클릭 핸들러
+  const handleContractClick = (contractId: number) => {
+    if (onContractClick) {
+      onContractClick(contractId)
+    }
+  }
+
   if (results === null) {
     return (
       <HSRContainer>
@@ -130,10 +139,7 @@ function HeaderSearchResults({ value }: IProps) {
                     subtitle={`${getStatusText(contract.status)} • v${contract.currentVersionNumber || 1}`}
                     subtitleStyle={getStatusStyle(contract.status)}
                     trailing={moment(contract.createdAt).format('DD/MM/YY')}
-                    onClick={() => {
-                      // 계약서 상세 페이지로 이동하는 로직 추가
-                      console.log('계약서 클릭:', contract.id)
-                    }}
+                    onClick={() => handleContractClick(contract.id)}
                   />
                 ))
               ) : (
@@ -217,10 +223,7 @@ function HeaderSearchResults({ value }: IProps) {
                 subtitle={`${getStatusText(contract.status)} • v${contract.currentVersionNumber || 1}`}
                 subtitleStyle={getStatusStyle(contract.status)}
                 trailing={moment(contract.createdAt).format('DD/MM/YY')}
-                onClick={() => {
-                  // 계약서 상세 페이지로 이동하는 로직 추가
-                  console.log('계약서 클릭:', contract.id)
-                }}
+                onClick={() => handleContractClick(contract.id)}
               />
             ))}
           </>

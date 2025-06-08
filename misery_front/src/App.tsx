@@ -4,13 +4,14 @@ import moment from 'moment';
 import { ReactComponent as FolderIcon } from './assets/icons/folder.svg';
 import Header from './components/Header';
 import LeftAsideColumn from './components/LeftAsideColumn';
+import FolderCreateModal from './components/Modal/FolderCreateModal';
 import PathBar from './components/PathBar';
 import Tooltip from './components/Tooltip';
 import ContractDetailModal from './components/Modal/ContractDetailModal';
 import ContractEditModal from './components/Modal/ContractEditModal';
-import folders from './data/folders.json';
-import { AContainer, AContent, AContentTable, AMain, Button  } from './styles';
+import { AContainer, AContent, AContentTable, AMain, Button } from './styles';
 import { refreshTokenApi, getMyContracts, deleteContract } from './utils/api';
+import * as folderApi from './utils/folderApi';
 import { useNavigate } from 'react-router-dom';
 import pdfImg from './assets/icons/pdf.png';
 
@@ -20,6 +21,24 @@ interface ContractListItem {
   status: 'OPEN' | 'CLOSED' | 'CANCELLED';
   createdAt: string;
   currentVersionNumber?: number;
+}
+
+interface FolderItem {
+  id: number;
+  name: string;
+  path: string;
+  parentId?: number;
+  parentName?: string;
+  createdAt: string;
+  createdBy: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  children?: FolderItem[];
+  contracts?: ContractListItem[];
+  childrenCount: number;
+  contractsCount: number;
 }
 
 // 3점 메뉴 컴포넌트
@@ -158,6 +177,13 @@ function App() {
   const [isContractEditModalOpen, setIsContractEditModalOpen] = useState(false);
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  
+  // 폴더 관련 상태 추가
+  const [folders, setFolders] = useState<FolderItem[]>([]);
+  const [foldersLoading, setFoldersLoading] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState<FolderItem | null>(null);
+  const [isFolderCreateModalOpen, setIsFolderCreateModalOpen] = useState(false);
+  
   const navigate = useNavigate();
 
   // JWT 페이로드에서 exp(만료시각) 꺼내기
@@ -173,13 +199,25 @@ function App() {
     return JSON.parse(json) as { exp: number };
   }
 
-  // 계약서 목록 로드
-  useEffect(() => {
-    refreshContracts();
-  }, []);
+  // 폴더 목록 로드
+  const loadFolders = async (parentId?: number) => {
+    try {
+      setFoldersLoading(true);
+      const response = await folderApi.getFolders(parentId, false);
+      if (response.success) {
+        setFolders(response.data || []);
+        console.log('폴더 목록 로드 완료:', response.data);
+      }
+    } catch (error) {
+      console.error('폴더 목록 로드 실패:', error);
+      setFolders([]);
+    } finally {
+      setFoldersLoading(false);
+    }
+  };
 
-  // 계약서 목록 새로고침 함수
-  const refreshContracts = async () => {
+  // 계약서 목록 로드
+  const loadContracts = async () => {
     try {
       setContractsLoading(true);
       const response = await getMyContracts(0, 50);
@@ -187,10 +225,25 @@ function App() {
         setContracts(response.data.content || []);
       }
     } catch (error) {
-      console.error('계약서 목록 새로고침 실패:', error);
+      console.error('계약서 목록 로드 실패:', error);
+      setContracts([]);
     } finally {
       setContractsLoading(false);
     }
+  };
+
+  // 초기 데이터 로드
+  useEffect(() => {
+    loadFolders(); // 루트 폴더들 로드
+    loadContracts();
+  }, []);
+
+  // 폴더 및 계약서 목록 새로고침 함수
+  const refreshData = async () => {
+    await Promise.all([
+      loadFolders(currentFolder?.id),
+      loadContracts()
+    ]);
   };
 
   // 1초마다 남은 유효시간 계산
@@ -269,6 +322,30 @@ function App() {
     setSelectedContractId(contractId);
     setIsContractDetailModalOpen(true);
   };
+  
+
+  // 폴더 클릭 핸들러
+  const handleFolderClick = async (folderId: number, folderName: string) => {
+    try {
+      const response = await folderApi.getFolderDetails(folderId, true);
+      if (response.success) {
+        setCurrentFolder(response.data);
+        // 해당 폴더의 하위 폴더들과 계약서들을 로드
+        await loadFolders(folderId);
+        setContracts(response.data.contracts || []);
+      }
+    } catch (error) {
+      console.error('폴더 이동 실패:', error);
+      alert('폴더를 열 수 없습니다.');
+    }
+  };
+
+  // 루트로 돌아가기
+  const handleBackToRoot = async () => {
+    setCurrentFolder(null);
+    await loadFolders(); // 루트 폴더들 로드
+    await loadContracts(); // 모든 계약서 로드
+  };
 
   // 계약서 상세 모달 닫기
   const handleCloseContractModal = () => {
@@ -294,7 +371,7 @@ function App() {
       const response = await deleteContract(contractId);
       if (response.success) {
         alert('계약서가 성공적으로 삭제되었습니다.');
-        await refreshContracts(); // 목록 새로고침
+        await refreshData(); // 목록 새로고침
       } else {
         alert(response.message || '계약서 삭제에 실패했습니다.');
       }
@@ -306,7 +383,7 @@ function App() {
 
   // 계약서 업데이트 후 처리
   const handleContractUpdate = () => {
-    refreshContracts();
+    refreshData();
   };
 
   // 3점 메뉴 토글
@@ -320,6 +397,19 @@ function App() {
     setOpenMenuId(null);
   };
 
+  // 폴더 생성 모달 관련
+  const handleOpenFolderCreateModal = () => {
+    setIsFolderCreateModalOpen(true);
+  };
+
+  const handleCloseFolderCreateModal = () => {
+    setIsFolderCreateModalOpen(false);
+  };
+
+  const handleFolderCreateSuccess = () => {
+    refreshData();
+  };
+
   const formatFileSize = (isContract = false) => {
     if (isContract) return '-';
     return '-';
@@ -328,13 +418,20 @@ function App() {
   return (
     <AContainer>
       <Header />
-      <LeftAsideColumn onContractUploadSuccess={refreshContracts} />
+      <LeftAsideColumn 
+        onContractUploadSuccess={refreshData}
+        onFolderCreateSuccess={handleFolderCreateSuccess}
+      />
 
       <AMain>
         {/* 토큰 갱신 버튼 & 남은 유효시간 */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 16px' }}>
-          <Button onClick={handleWebAuthnRegisterClick}
-            style={{ marginRight: 16 }}>PassKey등록</Button>
+          <Button onClick={handleOpenFolderCreateModal} style={{ marginRight: 16 }}>
+            새 폴더
+          </Button>
+          <Button onClick={handleWebAuthnRegisterClick} style={{ marginRight: 16 }}>
+            PassKey등록
+          </Button>
           <Button onClick={handleRefresh}>로그인 시간 갱신</Button>
           <span style={{ marginLeft: 12, lineHeight: '32px', fontSize: 14 }}>
             남은 시간: {remainingTime}
@@ -342,6 +439,28 @@ function App() {
         </div>
 
         <PathBar />
+
+        {/* 브레드크럼 네비게이션 */}
+        <div style={{ padding: '8px 16px', fontSize: '14px', color: '#5f6368' }}>
+          <button
+            onClick={handleBackToRoot}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentFolder ? '#1976d2' : '#333',
+              cursor: 'pointer',
+              textDecoration: currentFolder ? 'underline' : 'none'
+            }}
+          >
+            내 Drive
+          </button>
+          {currentFolder && (
+            <>
+              <span style={{ margin: '0 8px' }}>/</span>
+              <span>{currentFolder.name}</span>
+            </>
+          )}
+        </div>
 
         <AContent>
           <AContentTable>
@@ -357,18 +476,41 @@ function App() {
 
             <tbody>
               {/* 폴더 목록 */}
-              {folders.map(folder => (
-                <tr key={`folder-${folder.id}`}>
-                  <td>
-                    <div><FolderIcon /></div>
-                    <span>{folder.name}</span>
+              {foldersLoading ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '20px', color: '#5f6368' }}>
+                    폴더 로딩 중...
                   </td>
-                  <td>me</td>
-                  <td>{moment(folder.updatedAt).format('MMM DD, yyyy')}</td>
-                  <td>-</td>
-                  <td></td>
                 </tr>
-              ))}
+              ) : (
+                folders.map(folder => (
+                  <tr 
+                    key={`folder-${folder.id}`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleFolderClick(folder.id, folder.name)}
+                  >
+                    <td>
+                      <div><FolderIcon /></div>
+                      <span>
+                        {folder.name}
+                        <span style={{ 
+                          marginLeft: '8px', 
+                          fontSize: '0.75rem', 
+                          color: '#5f6368' 
+                        }}>
+                          ({folder.contractsCount}개 파일)
+                        </span>
+                      </span>
+                    </td>
+                    <td>me</td>
+                    <td>{moment(folder.createdAt).format('MMM DD, yyyy')}</td>
+                    <td>-</td>
+                    <td>
+                      {/* 폴더 액션 메뉴는 나중에 추가 */}
+                    </td>
+                  </tr>
+                ))
+              )}
 
               {/* 계약서 목록 */}
               {contractsLoading ? (
@@ -485,6 +627,15 @@ function App() {
         onClose={handleCloseEditModal}
         contractId={editingContractId}
         onUpdateSuccess={handleContractUpdate}
+      />
+
+      {/* 폴더 생성 모달 */}
+      <FolderCreateModal
+        isOpen={isFolderCreateModalOpen}
+        onClose={handleCloseFolderCreateModal}
+        onCreateSuccess={handleFolderCreateSuccess}
+        parentFolderId={currentFolder?.id}
+        parentFolderName={currentFolder?.name}
       />
     </AContainer>
   );

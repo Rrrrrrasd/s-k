@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { FolderItem } from '../../types/folder';
 import LeftAsideButton from '../LeftAsideButtom'
 import LeftAsideStorage from '../LeftAsideStorage'
 import NewButton from '../NewButton'
@@ -5,12 +7,16 @@ import { LACContainer, LACDivider, LACItemsContainer } from './styles'
 
 interface LeftAsideColumnProps {
   onContractUploadSuccess?: () => void;
+  onFolderCreateSuccess?: () => void; 
 }
 
-function LeftAsideColumn({ onContractUploadSuccess }: LeftAsideColumnProps) {
+
+
+function LeftAsideColumn({ onContractUploadSuccess, onFolderCreateSuccess }: LeftAsideColumnProps) {
   return (
     <LACContainer>
-      <NewButton onContractUploadSuccess={onContractUploadSuccess} />
+      <NewButton onContractUploadSuccess={onContractUploadSuccess} 
+        onFolderCreateSuccess={onFolderCreateSuccess} />
 
       <LACItemsContainer>
         <LeftAsideButton type="drive" isActive showMore />

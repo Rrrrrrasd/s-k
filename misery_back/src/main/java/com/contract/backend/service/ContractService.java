@@ -51,7 +51,8 @@ public class ContractService {
             UserRepository userRepository,
             SignatureRepository signatureRepository,
             BlockchainRecordRepository blockchainRecordRepository,
-            @Qualifier("blockchainService") BlockchainService blockchainService) {
+            @Qualifier("blockchainService") BlockchainService blockchainService,
+            ObjectMapper objectMapper) {
         this.contractRepository = contractRepository;
         this.contractVersionRepository = contractVersionRepository;
         this.contractPartyRepository = contractPartyRepository;
@@ -60,7 +61,7 @@ public class ContractService {
         this.signatureRepository = signatureRepository;
         this.blockchainRecordRepository = blockchainRecordRepository;
         this.blockchainService = blockchainService;
-        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        this.objectMapper = objectMapper;
     }
 
     @Transactional

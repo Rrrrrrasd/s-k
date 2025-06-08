@@ -1,3 +1,4 @@
+// src/components/Header/index.tsx
 import { useNavigate } from 'react-router-dom'
 import userImg from '../../assets/bighead.svg'
 import { ReactComponent as GridAppsIcon } from '../../assets/icons/grid.svg'
@@ -13,9 +14,11 @@ import {
 } from './styles'
 import { logoutApi } from '../../utils/api'
 
+interface HeaderProps {
+  onContractClick?: (contractId: number) => void
+}
 
-
-function Header() {
+function Header({ onContractClick }: HeaderProps) {
   const navigate = useNavigate();
   
   const handleLogout = async () => {
@@ -40,7 +43,7 @@ function Header() {
         </a>
       </HLogoContainer>
 
-      <HeaderSearch />
+      <HeaderSearch onContractClick={onContractClick} />
 
       <HUser>
         <HAppsButton>
