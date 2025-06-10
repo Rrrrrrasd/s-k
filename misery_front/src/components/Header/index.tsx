@@ -34,7 +34,8 @@ function Header() {
   return (
     <HContainer>
       <HLogoContainer>
-        <a href="/">
+        {/* 배너 누를때마다 로그인 해야하는 상황 고침 */}
+        <a href="/app">
           <img src={logoImg} alt="" srcSet={`${logoImg} 1x, ${logo2Img} 2x`} />
           <span>Drive</span>
         </a>

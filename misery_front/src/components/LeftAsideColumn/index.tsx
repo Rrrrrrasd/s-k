@@ -1,4 +1,4 @@
-import LeftAsideButton from '../LeftAsideButtom'
+import LeftAsideButton from '../LeftAsideButton'
 import LeftAsideStorage from '../LeftAsideStorage'
 import NewButton from '../NewButton'
 import { LACContainer, LACDivider, LACItemsContainer } from './styles'
