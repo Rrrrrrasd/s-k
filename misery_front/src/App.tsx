@@ -311,7 +311,13 @@ function App() {
     }
   };
 
-  // 계약서 클릭 (상세 보기)
+  // ⭐ 여기가 핵심 수정 부분: Header에서 넘어온 계약서 클릭을 처리
+  const handleContractClickFromSearch = (contractId: number) => {
+    setSelectedContractId(contractId);
+    setIsContractDetailModalOpen(true);
+  };
+
+  // 계약서 클릭 (상세 보기) - 기존 메인 화면용
   const handleContractClick = (event: React.MouseEvent, contractId: number) => {
     // 3점 메뉴나 액션 버튼 클릭 시에는 상세 모달을 열지 않음
     const target = event.target as HTMLElement;
@@ -417,7 +423,8 @@ function App() {
 
   return (
     <AContainer>
-      <Header />
+      {/* ⭐ Header에 검색 클릭 핸들러 전달 */}
+      <Header onContractClick={handleContractClickFromSearch} />
       <LeftAsideColumn 
         onContractUploadSuccess={refreshData}
         onFolderCreateSuccess={handleFolderCreateSuccess}
