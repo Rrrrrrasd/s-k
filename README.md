@@ -45,12 +45,13 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
 | | WSL2, Docker | 개발 환경 격리 및 블록체인 네트워크 구동 |
 
 ## 프로젝트 구조
+s-k/
 ├── misery_back/     # Spring Boot 백엔드 서버
-│   ├── src/
-│   └── build.gradle
+│   ├── src/         # 소스 코드
+│   └── build.gradle # Gradle 빌드 스크립트
 └── misery_front/    # React 프론트엔드
-├── src/
-└── package.json
+├── src/         # 소스 코드
+└── package.json # NPM 패키지 및 스크립트 정의
 
 
 ## 설치 및 실행 방법
