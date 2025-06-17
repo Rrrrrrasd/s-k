@@ -139,5 +139,4 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
     ```
     - 실행 후 `https://localhost:5173`으로 접속할 수 있습니다.
 
-## 라이선스
-이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 `LICENSE` 파일을 참고하십시오.
+
