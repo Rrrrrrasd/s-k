@@ -44,16 +44,6 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
 | **공통/인프라**| B2 Cloud Storage (S3 호환) | 계약서 파일의 안전한 객체 스토리지 |
 | | WSL2, Docker | 개발 환경 격리 및 블록체인 네트워크 구동 |
 
-## 프로젝트 구조
-s-k/
-├── misery_back/     # Spring Boot 백엔드 서버
-│   ├── src/         # 소스 코드
-│   └── build.gradle # Gradle 빌드 스크립트
-└── misery_front/    # React 프론트엔드
-├── src/         # 소스 코드
-└── package.json # NPM 패키지 및 스크립트 정의
-
-
 ## 설치 및 실행 방법
 
 ### 1. 사전 준비
@@ -148,3 +138,6 @@ s-k/
     npm run dev
     ```
     - 실행 후 `https://localhost:5173`으로 접속할 수 있습니다.
+
+## 라이선스
+이 프로젝트는 MIT 라이선스를 따릅니다. 자세한 내용은 `LICENSE` 파일을 참고하십시오.
