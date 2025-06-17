@@ -41,20 +41,17 @@ public class ContractController {
         try {
             UserEntity user = authService.findByUuid(uuid);
             ContractEntity contract = contractService.uploadContract(request, user, file);
-            return ResponseEntity.ok(ApiResponse.success(contract)); // 성공 시 ApiResponse 반환
+            return ResponseEntity.ok(ApiResponse.success(contract)); 
         } catch (Exception e) {
-            // GlobalExceptionHandler 에서 처리되도록 변경하거나, 여기서 직접 ApiResponse.fail() 반환
-            // 여기서는 일단 예외를 그대로 던져서 GlobalExceptionHandler가 처리하도록 둡니다.
-            // 더 구체적인 에러 응답을 원하면 여기서 ApiResponse.fail()을 사용할 수 있습니다.
-            // return ResponseEntity.internalServerError().body(ApiResponse.fail("Upload failed: " + e.getMessage()));
-            throw new RuntimeException("Upload failed: " + e.getMessage(), e); // GlobalExceptionHandler에서 처리
+            
+            throw new RuntimeException("Upload failed: " + e.getMessage(), e); 
         }
     }
 
     @PutMapping("/{contractId}")
     public ResponseEntity<ApiResponse<ContractEntity>> updateContract(
             @PathVariable Long contractId,
-            @RequestPart("data") ContractUpdateRequestDTO request, // ContractUpdateRequestDTO 사용
+            @RequestPart("data") ContractUpdateRequestDTO request, 
             @RequestPart("file") MultipartFile file,
             @AuthenticationPrincipal String uuid
     ) {
@@ -63,9 +60,8 @@ public class ContractController {
             ContractEntity updatedContract = contractService.updateContract(contractId, request, user, file);
             return ResponseEntity.ok(ApiResponse.success(updatedContract));
         } catch (Exception e) {
-            // GlobalExceptionHandler 에서 처리
-            // return ResponseEntity.internalServerError().body(ApiResponse.fail("Update failed: " + e.getMessage()));
-            throw new RuntimeException("Update failed: " + e.getMessage(), e); // GlobalExceptionHandler에서 처리
+            
+            throw new RuntimeException("Update failed: " + e.getMessage(), e); 
         }
     }
 
@@ -80,7 +76,7 @@ public class ContractController {
             ContractPartyEntity newParty = contractService.addParticipantToContract(contractId, request, actionRequester);
             return ResponseEntity.ok(ApiResponse.success(newParty));
         } catch (Exception e) {
-            // GlobalExceptionHandler에서 처리
+            
             throw new RuntimeException("Failed to add participant: " + e.getMessage(), e);
         }
     }
@@ -95,30 +91,22 @@ public class ContractController {
             ContractIntegrityVerificationDTO verificationResult = contractService.verifyContractIntegrity(contractId, versionNumber, requester);
             return ResponseEntity.ok(ApiResponse.success(verificationResult));
         } catch (Exception e) {
-            // GlobalExceptionHandler 에서 CustomException은 적절히 처리됨.
-            // RuntimeException으로 감싸서 보내면 500 에러와 함께 GlobalExceptionHandler에서 처리될 수 있음 (메시지 포함)
-            // 혹은 여기서 직접 ApiResponse.fail()을 사용하여 상태 코드와 메시지를 명시적으로 지정할 수 있음
-            // e.g., if (e instanceof CustomException) { throw (CustomException) e; }
-            //       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Verification failed: " + e.getMessage()));
+            
             throw new RuntimeException("Verification failed: " + e.getMessage(), e);
         }
     }
 
-    @GetMapping // 또는 @GetMapping("/my") 등 원하는 경로로 설정 가능
+    @GetMapping 
     public ResponseEntity<ApiResponse<Page<ContractListDTO>>> getMyContracts(
-            @AuthenticationPrincipal String uuid, // 인증된 사용자 UUID
+            @AuthenticationPrincipal String uuid, 
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable // 기본 페이지 크기 10, 생성일 내림차순 정렬
     ) {
         try {
-            // AuthService를 사용하여 UserEntity를 찾는 과정이 ContractService 내에 이미 있으므로,
-            // 여기서는 uuid만 서비스로 전달합니다.
+            
             Page<ContractListDTO> contracts = contractService.getContractsForUser(uuid, pageable);
             return ResponseEntity.ok(ApiResponse.success(contracts));
         } catch (Exception e) {
-            // GlobalExceptionHandler에서 처리하거나, 여기서 직접 ApiResponse.fail() 반환
-            // 여기서는 예외를 그대로 던져서 GlobalExceptionHandler가 처리하도록 둡니다.
-            // 더 구체적인 에러 응답을 원하면 여기서 ApiResponse.fail()을 사용할 수 있습니다.
-            // e.g., return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to retrieve contracts: " + e.getMessage()));
+            
             throw new RuntimeException("Failed to retrieve contracts: " + e.getMessage(), e);
         }
     }
@@ -132,16 +120,12 @@ public class ContractController {
             ContractDetailDTO contractDetails = contractService.getContractDetails(contractId, uuid);
             return ResponseEntity.ok(ApiResponse.success(contractDetails));
         } catch (Exception e) {
-            // GlobalExceptionHandler에서 CustomException은 적절히 처리됨.
-            // RuntimeException으로 감싸서 보내면 500 에러와 함께 GlobalExceptionHandler에서 처리될 수 있음 (메시지 포함)
-            // 혹은 여기서 직접 ApiResponse.fail()을 사용하여 상태 코드와 메시지를 명시적으로 지정할 수 있음
-            // e.g., if (e instanceof CustomException) { throw (CustomException) e; }
-            //       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Failed to retrieve contract details: " + e.getMessage()));
+           
             throw new RuntimeException("Failed to retrieve contract details: " + e.getMessage(), e);
         }
     }
 
-    // --- 👇 계약서 삭제를 위한 핸들러 추가 ---
+    //계약서 삭제를 위한 핸들러 추가 
     @DeleteMapping("/{contractId}")
     public ResponseEntity<ApiResponse<Void>> deleteContract(
             @PathVariable Long contractId,
@@ -152,8 +136,6 @@ public class ContractController {
             contractService.deleteContract(contractId, requester); // 서비스 계층에 실제 삭제 로직 호출
             return ResponseEntity.ok(ApiResponse.success(null)); // 성공 시 null 데이터와 함께 응답
         } catch (Exception e) {
-            // GlobalExceptionHandler에서 CustomException은 적절히 처리됨.
-            // RuntimeException으로 감싸서 보내면 500 에러와 함께 GlobalExceptionHandler에서 처리될 수 있음
             throw new RuntimeException("Failed to delete contract: " + e.getMessage(), e);
         }
     }
