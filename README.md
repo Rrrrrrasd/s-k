@@ -2,9 +2,10 @@
 
 Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passkey)을 활용하여 계약서의 무결성과 보안을 강화한 전자계약 관리 플랫폼입니다. 사용자는 안전하게 계약서를 업로드하고, 버전 관리를 하며, 참여자들과 함께 서명 프로세스를 진행할 수 있습니다. 모든 계약의 중요 기록은 블록체인에 저장되어 위변조를 방지합니다.
 
-##  주요 기능
+경상국립대학교 컴퓨터공학과(부)<br>
+유연보, 신영성, 강두영
 
-### 백엔드 (Misery-Back)
+##  주요 기능
 - **사용자 인증**: JWT 토큰 기반의 기본 로그인 및 WebAuthn(Passkey)을 이용한 강력한 2단계 인증을 지원합니다.
 - **계약서 관리**: 계약서의 생성, 조회, 수정, 삭제(논리적 삭제) 기능을 제공합니다.
 - **버전 관리**: 계약서 수정 시 새로운 버전을 생성하고 이전 버전을 보관하여 변경 이력을 추적합니다.
@@ -14,8 +15,6 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
     - 계약서의 메타데이터(파일 해시, 참여자, 서명 정보 등)를 Hyperledger Fabric 블록체인에 기록하여 데이터의 무결성을 보장합니다.
     - 블록체인에 기록된 데이터와 현재 DB 데이터를 비교하여 무결성을 검증하는 기능을 제공합니다.
 - **파일 저장**: 계약서 파일은 B2 Cloud Storage와 같은 S3 호환 스토리지에 안전하게 저장됩니다.
-
-### 프론트엔드 (Misery-Front)
 - **사용자 인터페이스**: React와 Styled-components를 사용한 직관적이고 반응형 웹 UI를 제공합니다.
 - **인증**: 이메일/비밀번호 로그인, 회원가입 및 Passkey 등록/로그인 기능을 제공합니다.
 - **대시보드**: 사용자는 자신의 계약서와 폴더를 한눈에 보고 관리할 수 있습니다.
@@ -27,7 +26,6 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
 - **통합 검색**: 계약서 제목 및 파일 이름으로 원하는 문서를 빠르게 찾을 수 있습니다.
 
 ## 기술 스택
-
 | 구분 | 기술 | 설명 |
 |---|---|---|
 | **백엔드** | Java 17, Spring Boot | 안정적이고 생산성 높은 백엔드 개발 환경 |
@@ -44,6 +42,10 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
 | **공통/인프라**| B2 Cloud Storage (S3 호환) | 계약서 파일의 안전한 객체 스토리지 |
 | | WSL2, Docker | 개발 환경 격리 및 블록체인 네트워크 구동 |
 
+## 흐름도
+![유스케이스](https://github.com/user-attachments/assets/62d19649-36fd-40ac-99c2-7703f797f580)
+
+
 ## 설치 및 실행 방법
 
 ### 1. 사전 준비
@@ -57,7 +59,6 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
 백엔드 프로젝트의 `misery_back/README.md` 파일에 상세한 네트워크 설정 가이드가 포함되어 있습니다. 아래는 주요 단계 요약입니다.
 
 > **참고**: 모든 명령어는 WSL2 터미널에서 실행해야 합니다.
-
 1.  **Fabric Samples 클론**:
     ```bash
     git clone --branch v2.4.9 [https://github.com/hyperledger/fabric-samples.git](https://github.com/hyperledger/fabric-samples.git)
@@ -138,5 +139,20 @@ Misery는 Hyperledger Fabric 블록체인 기술과 생체 인증(WebAuthn/Passk
     npm run dev
     ```
     - 실행 후 `https://localhost:5173`으로 접속할 수 있습니다.
+  
+
+
+    ## 실행이미지
+    <img width="3830" height="2054" alt="m_login_imgupscaler" src="https://github.com/user-attachments/assets/22d8faf1-e96a-46af-9c73-f930b25abe96" />
+    <img width="5116" height="2262" alt="m_login2_imgupscaler" src="https://github.com/user-attachments/assets/346102c7-3f48-4fd1-9715-899bff5b0e7d" />
+    <img width="3834" height="2054" alt="m_main_imgupscaler" src="https://github.com/user-attachments/assets/a14e5c1e-f5ae-42a4-ba86-03caa1481107" />
+    <img width="3832" height="2060" alt="m_ex1_imgupscaler" src="https://github.com/user-attachments/assets/226c5213-9059-4319-8d95-bb4a95d3ad8e" />
+    <img width="3836" height="2064" alt="m_ex2_imgupscaler" src="https://github.com/user-attachments/assets/c4d4406b-d7dc-414c-bf71-3c59fc3fc67f" />
+    <img width="3836" height="2070" alt="m_ex3_imgupscaler" src="https://github.com/user-attachments/assets/45128c0b-bf20-4e94-a6b7-bd57a7d354e7" />
+
+
+
+
+
 
 
